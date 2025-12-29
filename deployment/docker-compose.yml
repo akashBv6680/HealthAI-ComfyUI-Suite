@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # ComfyUI Backend
+  comfyui:
+    image: pytorch/pytorch:2.0-cuda11.8-devel-ubuntu22.04
+    container_name: comfyui-backend
+    working_dir: /comfyui
+    volumes:
+      - ./comfyui_data:/comfyui
+      - ./models:/models
+    ports:
+      - "8188:8188"
+    environment:
+      PYTHONUNBUFFERED: 1
+    command: >
+      bash -c "pip install -q git+https://github.com/comfyanonymous/ComfyUI.git &&
+      python main.py --listen 0.0.0.0"
+    networks:
+      - healthai-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Streamlit App
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthai-streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - COMFYUI_API_URL=http://comfyui:8188
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+    volumes:
+      - ./app:/app
+      - ./agents:/agents
+      - ./utils:/utils
+    depends_on:
+      comfyui:
+        condition: service_healthy
+    networks:
+      - healthai-net
+
+  # PostgreSQL for Clinic Data
+  postgres:
+    image: postgres:15-alpine
+    container_name: healthai-postgres
+    environment:
+      POSTGRES_DB: healthai_db
+      POSTGRES_USER: ${DB_USER:-healthai}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthai-net
+
+volumes:
+  postgres_data:
+
+networks:
+  healthai-net:
+    driver: bridge
