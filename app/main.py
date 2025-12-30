@@ -2,7 +2,10 @@ import streamlit as st
 import os
 from pathlib import Path
 import sys
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -15,7 +18,7 @@ st.subheader("Agentic Health Risk Visualizations for Madurai Clinics")
 if 'GEMINI_API_KEY' not in st.secrets:
     st.error('Gemini API Key not found in secrets')
 else:
-    genai.configure(api_key=st.secrets['GEMINI_API_KEY'])
+    if genai:     genai.configure(api_key=st.secrets['GEMINI_API_KEY'])
 
 st.markdown("""
 ### Welcome to HealthAI Suite
