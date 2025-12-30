@@ -2,6 +2,7 @@ import streamlit as st
 import os
 from pathlib import Path
 import sys
+import google.generativeai as genai
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -9,6 +10,12 @@ st.set_page_config(page_title="HealthAI Suite + ComfyUI", page_icon="🏥", layo
 
 st.title("🏥 HealthAI Suite + ComfyUI")
 st.subheader("Agentic Health Risk Visualizations for Madurai Clinics")
+
+# Initialize Gemini API
+if 'GEMINI_API_KEY' not in st.secrets:
+    st.error('Gemini API Key not found in secrets')
+else:
+    genai.configure(api_key=st.secrets['GEMINI_API_KEY'])
 
 st.markdown("""
 ### Welcome to HealthAI Suite
