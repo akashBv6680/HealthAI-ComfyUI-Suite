@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-import numpy as np
 
 st.set_page_config(page_title="Clinic Analytics", page_icon="📝", layout="wide")
 st.title("📝 Clinic Analytics")
@@ -25,51 +23,32 @@ col1, col2 = st.columns(2)
 with col1:
     ages = ['0-20', '20-40', '40-60', '60-80', '80+']
     counts = [12, 45, 58, 35, 6]
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(ages, counts, color='#4ecdc4')
-    ax.set_ylabel('Number of Patients')
-    ax.set_title('Age Distribution')
-    st.pyplot(fig)
+    age_df = pd.DataFrame({'Age Group': ages, 'Count': counts})
+    st.bar_chart(data=age_df.set_index('Age Group'), use_container_width=True)
 
 with col2:
     genders = ['Male', 'Female', 'Other']
     gender_counts = [78, 74, 4]
-    colors = ['#ff6b6b', '#ffa500', '#95e1d3']
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ax.pie(gender_counts, labels=genders, autopct='%1.1f%%', colors=colors)
-    ax.set_title('Gender Distribution')
-    st.pyplot(fig)
+    gender_df = pd.DataFrame({'Gender': genders, 'Count': gender_counts})
+    st.bar_chart(data=gender_df.set_index('Gender'), use_container_width=True)
 
 st.markdown("---")
 st.markdown("### Risk Level Distribution")
 
 risk_data = {
-    'Low Risk': 89,
-    'Medium Risk': 48,
-    'High Risk': 19
+    'Risk Level': ['Low Risk', 'Medium Risk', 'High Risk'],
+    'Patients': [89, 48, 19]
 }
-
-fig, ax = plt.subplots(figsize=(10, 5))
-colors_risk = ['#51cf66', '#ffd43b', '#ff6b6b']
-ax.barh(list(risk_data.keys()), list(risk_data.values()), color=colors_risk)
-ax.set_xlabel('Number of Patients')
-for i, v in enumerate(risk_data.values()):
-    ax.text(v + 1, i, str(v), va='center')
-st.pyplot(fig)
+df_risk = pd.DataFrame(risk_data)
+st.bar_chart(data=df_risk.set_index('Risk Level'), use_container_width=True)
 
 st.markdown("---")
 st.markdown("### Daily Activity")
 
 days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 patients_seen = [32, 28, 35, 29, 31, 12, 8]
-
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.plot(days, patients_seen, marker='o', linewidth=2, markersize=8, color='#4ecdc4')
-ax.fill_between(range(len(days)), patients_seen, alpha=0.3, color='#4ecdc4')
-ax.set_ylabel('Patients Seen')
-ax.set_title('Weekly Patient Volume')
-ax.grid(True, alpha=0.3)
-st.pyplot(fig)
+activity_df = pd.DataFrame({'Day': days, 'Patients Seen': patients_seen})
+st.line_chart(data=activity_df.set_index('Day'), use_container_width=True)
 
 st.markdown("---")
 st.markdown("### Recent Patients")
@@ -81,21 +60,20 @@ recent_patients_data = {
     'Risk Level': ['Low', 'Medium', 'High', 'Low', 'Medium']
 }
 
-df = pd.DataFrame(recent_patients_data)
-st.dataframe(df, use_container_width=True)
+df_recent = pd.DataFrame(recent_patients_data)
+st.dataframe(df_recent, use_container_width=True)
 
 st.markdown("---")
 st.markdown("### System Performance")
 
 col1, col2, col3 = st.columns(3)
-col1.gauge_chart({'value': 95}, min_value=0, max_value=100)
-col1.caption("API Response Time (ms)")
 
-col2.gauge_chart({'value': 99.8}, min_value=0, max_value=100)
-col2.caption("System Uptime %")
-
-col3.gauge_chart({'value': 68}, min_value=0, max_value=100)
-col3.caption("CPU Usage %")
+with col1:
+    st.metric("API Response Time", "95 ms", "-5 ms")
+with col2:
+    st.metric("System Uptime", "99.8%", "+0.1%")
+with col3:
+    st.metric("CPU Usage", "68%", "-2%")
 
 st.markdown("---")
-st.info("🏆 All pages complete! Application is fully functional.")
+st.success("🏆 All analytics updated successfully!")
